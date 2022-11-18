@@ -1,12 +1,13 @@
-package com.kerencev.stopwatch
+package com.kerencev.stopwatch.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import androidx.lifecycle.ViewModelProvider
+import com.kerencev.stopwatch.R
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,30 +31,50 @@ class MainActivity : AppCompatActivity() {
         )
     )
 
+    private val viewModel: BaseViewModel by lazy {
+        ViewModelProvider(this)[BaseViewModel.MainViewModel::class.java]
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val textView = findViewById<TextView>(R.id.text_time)
-        CoroutineScope(
-            Dispatchers.Main
-                    + SupervisorJob()
-        ).launch {
-            stopwatchListOrchestrator.ticker.collect {
+
+        viewModel.data
+            .onEach {
                 textView.text = it
             }
-        }
+            .launchIn(CoroutineScope(Dispatchers.Main))
 
         findViewById<Button>(R.id.button_start).setOnClickListener {
-            stopwatchListOrchestrator.start()
+            viewModel.start()
         }
         findViewById<Button>(R.id.button_pause).setOnClickListener {
-            stopwatchListOrchestrator.pause()
+            viewModel.pause()
         }
         findViewById<Button>(R.id.button_stop).setOnClickListener {
-            stopwatchListOrchestrator.stop()
+            viewModel.stop()
         }
 
+//        CoroutineScope(
+//            Dispatchers.Main
+//                    + SupervisorJob()
+//        ).launch {
+//            stopwatchListOrchestrator.ticker.collect {
+//                textView.text = it
+//            }
+//        }
+//
+//        findViewById<Button>(R.id.button_start).setOnClickListener {
+//            stopwatchListOrchestrator.start()
+//        }
+//        findViewById<Button>(R.id.button_pause).setOnClickListener {
+//            stopwatchListOrchestrator.pause()
+//        }
+//        findViewById<Button>(R.id.button_stop).setOnClickListener {
+//            stopwatchListOrchestrator.stop()
+//        }
     }
 }
 
@@ -174,7 +195,7 @@ class StopwatchListOrchestrator(
 ) {
 
     private var job: Job? = null
-    private val mutableTicker = MutableStateFlow("")
+    private val mutableTicker = MutableStateFlow("00:00:000")
     val ticker: StateFlow<String> = mutableTicker
 
     fun start() {
