@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.kerencev.stopwatch.model.Stopwatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -13,35 +13,26 @@ import kotlinx.coroutines.flow.onEach
 abstract class BaseViewModel : ViewModel() {
 
     abstract val data: Flow<String>
+    protected abstract val scope: CoroutineScope
 
     abstract fun start()
     abstract fun pause()
     abstract fun stop()
 
-    class MainViewModel : BaseViewModel() {
+    override fun onCleared() {
+        scope.cancel()
+        super.onCleared()
+    }
+
+    class MainViewModel(
+        private val stopwatch: Stopwatch
+    ) : BaseViewModel() {
 
         override val data = MutableStateFlow("")
-        private val scope = CoroutineScope(Dispatchers.IO)
-
-        private val timestampProvider = object : TimestampProvider {
-            override fun getMilliseconds(): Long {
-                return System.currentTimeMillis()
-            }
-        }
-
-        private val stopwatchListOrchestrator = Stopwatch.StopwatchListOrchestrator(
-            StopwatchStateHolder(
-                StopwatchStateCalculator(
-                    timestampProvider,
-                    ElapsedTimeCalculator(timestampProvider)
-                ),
-                ElapsedTimeCalculator(timestampProvider),
-                TimestampMillisecondsFormatter()
-            )
-        )
+        override val scope = CoroutineScope(Dispatchers.IO)
 
         init {
-            stopwatchListOrchestrator.ticker
+            stopwatch.ticker
                 .onEach {
                     data.value = it
                 }
@@ -49,15 +40,15 @@ abstract class BaseViewModel : ViewModel() {
         }
 
         override fun start() {
-            stopwatchListOrchestrator.start()
+            stopwatch.start()
         }
 
         override fun pause() {
-            stopwatchListOrchestrator.pause()
+            stopwatch.pause()
         }
 
         override fun stop() {
-            stopwatchListOrchestrator.stop()
+            stopwatch.stop()
         }
     }
 }
