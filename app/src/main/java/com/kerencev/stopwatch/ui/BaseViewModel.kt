@@ -12,12 +12,16 @@ import kotlinx.coroutines.flow.onEach
 
 abstract class BaseViewModel : ViewModel() {
 
-    abstract val data: Flow<String>
+    abstract val firstData: Flow<String>
+    abstract val secondData: Flow<String>
     protected abstract val scope: CoroutineScope
 
-    abstract fun start()
-    abstract fun pause()
-    abstract fun stop()
+    abstract fun startFirstStopwatch()
+    abstract fun pauseFirstStopwatch()
+    abstract fun stopFirstStopwatch()
+    abstract fun startSecondStopwatch()
+    abstract fun pauseSecondStopwatch()
+    abstract fun stopSecondStopwatch()
 
     override fun onCleared() {
         scope.cancel()
@@ -25,30 +29,49 @@ abstract class BaseViewModel : ViewModel() {
     }
 
     class MainViewModel(
-        private val stopwatch: Stopwatch
+        private val firstStopwatch: Stopwatch,
+        private val secondStopwatch: Stopwatch,
     ) : BaseViewModel() {
 
-        override val data = MutableStateFlow("")
+        override val firstData = MutableStateFlow("")
+        override val secondData = MutableStateFlow("")
         override val scope = CoroutineScope(Dispatchers.IO)
 
         init {
-            stopwatch.ticker
+            firstStopwatch.ticker
                 .onEach {
-                    data.value = it
+                    firstData.value = it
+                }
+                .launchIn(scope)
+            secondStopwatch.ticker
+                .onEach {
+                    secondData.value = it
                 }
                 .launchIn(scope)
         }
 
-        override fun start() {
-            stopwatch.start()
+        override fun startFirstStopwatch() {
+            firstStopwatch.start()
         }
 
-        override fun pause() {
-            stopwatch.pause()
+        override fun pauseFirstStopwatch() {
+            firstStopwatch.pause()
         }
 
-        override fun stop() {
-            stopwatch.stop()
+        override fun stopFirstStopwatch() {
+            firstStopwatch.stop()
+        }
+
+        override fun startSecondStopwatch() {
+            secondStopwatch.start()
+        }
+
+        override fun pauseSecondStopwatch() {
+            secondStopwatch.pause()
+        }
+
+        override fun stopSecondStopwatch() {
+            secondStopwatch.stop()
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.kerencev.stopwatch.di
 
 import com.kerencev.stopwatch.model.*
-import com.kerencev.stopwatch.ui.*
+import com.kerencev.stopwatch.ui.BaseViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -16,14 +16,19 @@ val appModule = module {
         )
     }
     single<TimestampMillisecondsFormatter> { TimestampMillisecondsFormatter.Base() }
-    single<StopwatchStateHolder> {
+    factory<StopwatchStateHolder> {
         StopwatchStateHolder.Base(
             stopwatchStateCalculator = get(),
             elapsedTimeCalculator = get(),
             timestampMillisecondsFormatter = get()
         )
     }
-    single<Stopwatch> { Stopwatch.StopwatchListOrchestrator(stopwatchStateHolder = get()) }
+    factory<Stopwatch> { Stopwatch.StopwatchListOrchestrator(stopwatchStateHolder = get()) }
 
-    viewModel<BaseViewModel> { BaseViewModel.MainViewModel(stopwatch = get()) }
+    viewModel<BaseViewModel> {
+        BaseViewModel.MainViewModel(
+            firstStopwatch = get(),
+            secondStopwatch = get()
+        )
+    }
 }

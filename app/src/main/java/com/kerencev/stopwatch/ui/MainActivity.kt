@@ -1,10 +1,7 @@
 package com.kerencev.stopwatch.ui
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.kerencev.stopwatch.R
 import com.kerencev.stopwatch.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,18 +25,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeData() {
-        viewModel.data
+        viewModel.firstData
             .onEach {
                 binding.textTime.text = it
+            }
+            .launchIn(scope)
+
+        viewModel.secondData
+            .onEach {
+                binding.textTime2.text = it
             }
             .launchIn(scope)
     }
 
     private fun setButtonsClicks() {
         with(binding) {
-            buttonStart.setOnClickListener { viewModel.start() }
-            buttonPause.setOnClickListener { viewModel.pause() }
-            buttonStop.setOnClickListener { viewModel.stop() }
+            buttonStart.setOnClickListener { viewModel.startFirstStopwatch() }
+            buttonPause.setOnClickListener { viewModel.pauseFirstStopwatch() }
+            buttonStop.setOnClickListener { viewModel.stopFirstStopwatch() }
+
+            buttonStart2.setOnClickListener { viewModel.startSecondStopwatch() }
+            buttonPause2.setOnClickListener { viewModel.pauseSecondStopwatch() }
+            buttonStop2.setOnClickListener { viewModel.stopSecondStopwatch() }
         }
     }
 
